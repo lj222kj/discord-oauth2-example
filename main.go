@@ -2,11 +2,11 @@ package main
 
 import (
 	"context"
+	"discord-oauth2-example/config"
 	"discord-oauth2-example/discord"
-	"discord-oauth2-example/global"
 	"discord-oauth2-example/web"
 	"github.com/sirupsen/logrus"
-	"os"
+	"net/http"
 	"os/signal"
 	"syscall"
 	"time"
@@ -14,11 +14,12 @@ import (
 
 func main() {
 	le := logrus.New().WithFields(logrus.Fields{
-		"app": "tenant-api",
+		"app": "discord-oauth2-example",
 	})
-	cfg, err := global.NewConfig()
+
+	cfg, err := config.NewConfig()
 	if err != nil {
-		le.WithField("error", err.Error()).Fatal("failed to parse env config")
+		le.WithError(err).Fatal("failed to parse env config")
 	}
 
 	le.Level = logrus.ErrorLevel
@@ -26,27 +27,33 @@ func main() {
 		le.Level = logrus.InfoLevel
 	}
 
-	sigChan := make(chan os.Signal, 10)
-	signal.Notify(sigChan, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
-
 	le.WithFields(logrus.Fields{
 		"app_name": cfg.AppName,
 		"env":      cfg.Env,
 		"port":     cfg.Port,
 	}).Info("application starting")
-	discordSvc := discord.New(cfg)
+
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+
+	discordSvc := discord.New(cfg.DiscordOauthConfig)
 	api := web.NewRestApi(le, cfg, discordSvc)
+
 	go func() {
-		if err := api.ListenAndServe(); err != nil {
-			le.WithField("error", err.Error()).Errorf("http application shutdown, port %s %v", cfg.Port, err)
+		err := api.ListenAndServe()
+		if err != nil && err != http.ErrServerClosed {
+			le.WithError(err).Errorf("http application shutdown, port %s %v\"", cfg.Port, err)
 		}
 	}()
 
-	ctx, cancel := context.WithCancel(context.Background())
+	<-ctx.Done()
+	stop()
 
-	<-sigChan
-	le.Info("received termination, graceful shutdown")
-	ctx, cancel = context.WithTimeout(ctx, 15*time.Second)
+	le.Info("graceful shutdown")
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	api.Shutdown(ctx)
+	if err := api.Shutdown(ctx); err != nil {
+		le.Fatalf("Server forced to shutdown: %e", err)
+	}
+
 }

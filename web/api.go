@@ -2,7 +2,7 @@ package web
 
 import (
 	"context"
-	"discord-oauth2-example/global"
+	"discord-oauth2-example/config"
 	"encoding/json"
 	"fmt"
 	"github.com/sirupsen/logrus"
@@ -13,7 +13,7 @@ import (
 type Api struct {
 	discordSvc DiscordService
 	le         *logrus.Entry
-	cfg        *global.Config
+	cfg        *config.Config
 	srv        *http.Server
 	mux        *http.ServeMux
 }
@@ -70,7 +70,7 @@ func (a *Api) Auth() http.HandlerFunc {
 func (a *Api) GetMux() *http.ServeMux {
 	return a.mux
 }
-func NewRestApi(le *logrus.Entry, cfg *global.Config, discordSvc DiscordService) *Api {
+func NewRestApi(le *logrus.Entry, cfg *config.Config, discordSvc DiscordService) *Api {
 	mux := http.NewServeMux()
 
 	api := &Api{

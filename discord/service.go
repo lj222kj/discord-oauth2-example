@@ -2,7 +2,7 @@ package discord
 
 import (
 	"context"
-	"discord-oauth2-example/global"
+	"discord-oauth2-example/config"
 	"discord-oauth2-example/utils"
 	"fmt"
 	"github.com/google/uuid"
@@ -14,7 +14,7 @@ type discord struct {
 	oauthCfg *oauth2.Config
 }
 
-func New(cfg *global.Config) *discord {
+func New(cfg *config.DiscordOauthConfig) *discord {
 	return &discord{
 		oauthCfg: &oauth2.Config{
 			ClientID:     cfg.OAuthClientId,
