@@ -1,8 +1,8 @@
 package web
 
 import (
+	"discord-oauth2-example/config"
 	"discord-oauth2-example/discord"
-	"discord-oauth2-example/global"
 	"encoding/json"
 	"errors"
 	"github.com/golang/mock/gomock"
@@ -16,11 +16,11 @@ import (
 )
 
 var le *logrus.Entry
-var cfg *global.Config
+var cfg *config.Config
 
 func TestMain(m *testing.M) {
 	le = logrus.New().WithField("service", "testing")
-	cfg, _ = global.NewConfig()
+	cfg, _ = config.NewConfig()
 	os.Exit(m.Run())
 }
 

@@ -1,4 +1,4 @@
-package global
+package config
 
 import (
 	"context"
@@ -6,10 +6,14 @@ import (
 )
 
 type Config struct {
-	AppName           string `env:"APP_NAME,default=discord-oauth-example"`
-	Env               string `env:"ENV,default=dev"`
-	Host              string `env:"HOST,default=127.0.0.1"`
-	Port              string `env:"PORT,default=8080"`
+	AppName            string `env:"APP_NAME,default=discord-oauth2-example"`
+	Env                string `env:"ENV,default=dev"`
+	Host               string `env:"HOST,default=127.0.0.1"`
+	Port               string `env:"PORT,default=8080"`
+	DiscordOauthConfig *DiscordOauthConfig
+}
+
+type DiscordOauthConfig struct {
 	OAuthRedirectUrl  string `env:"OAUTH_REDIRECT_URL,default=http://localhost:8080/redirect/oauth"`
 	OAuthClientSecret string `env:"OAUTH_CLIENT_SECRET,required"`
 	OAuthClientId     string `env:"OAUTH_CLIENT_ID,required"`
